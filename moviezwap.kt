@@ -1,43 +1,50 @@
-telugupalaka.kt
+moviezwap.kt
 package com.lagradost.cloudstream3
 
-class TeluguPalakaPlugin : MainAPI() {
-    override var mainUrl = "https://telugupalaka.com"
-    override var name = "TeluguPalaka"
-    override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
-
-    override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val doc = app.get(mainUrl).document
-        val items = doc.select(".item").mapNotNull {
-            val type = if (it.selectFirst(".type")?.text()?.contains("TV") == true) TvType.TvSeries else TvType.Movie
-            val title = it.selectFirst("h2 a")?.text() ?: return@mapNotNull null
-            val href = fixUrl(it.selectFirst("a")?.attr("href") ?: "")
-            val poster = it.selectFirst("img")?.attr("src")
-            
-            if (type == TvType.Movie) {
-                MovieSearchResponse(title, href, this.name, type, poster, null, null)
-            } else {
-                TvSeriesSearchResponse(title, href, this.name, type, poster, null, null)
-            }
-        }
-        return HomePageResponse(listOf(HomePageList("Latest Updates", items)))
-    }
+class MoviezwapPlugin : MainAPI() {
+    override var mainUrl = "https://moviezwap.org"
+    override var name = "Moviezwap HD"
+    override val supportedTypes = setOf(TvType.Movie)
 
     override suspend fun search(query: String): List<SearchResponse> {
         val doc = app.get("$mainUrl/?s=$query").document
         return doc.select(".item").map {
-            val type = if (it.selectFirst(".type")?.text()?.contains("TV") == true) TvType.TvSeries else TvType.Movie
-            val title = it.selectFirst("h2 a")?.text() ?: ""
-            val href = fixUrl(it.selectFirst("a")?.attr("href") ?: "")
-            val poster = it.selectFirst("img")?.attr("src")
-            
-            if (type == TvType.Movie) {
-                MovieSearchResponse(title, href, this.name, type, poster, null, null)
-            } else {
-                TvSeriesSearchResponse(title, href, this.name, type, poster, null, null)
-            }
+            MovieSearchResponse(
+                it.selectFirst("h2 a")?.text() ?: "",
+                fixUrl(it.selectFirst("a")?.attr("href") ?: ""),
+                this.name,
+                TvType.Movie,
+                it.selectFirst("img")?.attr("src"),
+                null,
+                null
+            )
         }
     }
 
-    // Load function similar to iBOMMA with site-specific parsing
+    override suspend fun load(url: String): LoadResponse {
+        val doc = app.get(url).document
+        val sources = doc.select("source").map {
+            val quality = it.attr("label")
+            val src = it.attr("src")
+            // Prioritize 1080p
+            if (quality.contains("1080")) {
+                ExtractorLink(this.name, quality, src, "", Qualities.FullHd.value)
+            } else {
+                ExtractorLink(this.name, quality, src, "", Qualities.Unknown.value)
+            }
+        }
+        return MovieLoadResponse(
+            doc.selectFirst("h1.entry-title")?.text() ?: "",
+            url,
+            TvType.Movie,
+            sources.firstOrNull()?.url ?: "",
+            doc.selectFirst(".post-thumbnail img")?.attr("src"),
+            null,
+            doc.selectFirst(".entry-content p")?.text(),
+            null,
+            null,
+            null,
+            null
+        )
+    }
 }
