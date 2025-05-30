@@ -1,0 +1,28 @@
+{
+  "name": "TeluguFlix Pro",
+  "version": 3,
+  "icon": "https://i.imgur.com/8zFzBkX.png",
+  "plugins": [
+    {
+      "name": "iBOMMA",
+      "version": 4,
+      "file": "ibomma.kt",
+      "className": "iBOMMAPlugin",
+      "description": "Primary Telugu source - 2024 Updated"
+    },
+    {
+      "name": "TeluguPalaka",
+      "version": 3,
+      "file": "telugupalaka.kt",
+      "className": "TeluguPalakaPlugin",
+      "description": "Daily updated TV Shows"
+    },
+    {
+      "name": "Moviezwap HD",
+      "version": 2,
+      "file": "moviezwap.kt",
+      "className": "MoviezwapPlugin",
+      "description": "HD Backup (1080p priority)"
+    }
+  ]
+}
